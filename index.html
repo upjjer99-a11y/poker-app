@@ -1,7 +1,4 @@
-# יצירת קובץ ה-HTML של ה-Web App בתוך תיקיית ג'נרטור
-import os
-
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -22,8 +19,6 @@ html_content = """<!DOCTYPE html>
             min-height: 90vh;
             overflow: hidden;
         }
-        
-        /* שולחן הפוקר המרהיב */
         .poker-table {
             background: radial-gradient(circle, #1b7343 0%, #0d4022 100%);
             border: 12px solid #5c3a21;
@@ -39,7 +34,6 @@ html_content = """<!DOCTYPE html>
             position: relative;
             margin-bottom: 30px;
         }
-
         .pot-display {
             background: rgba(0, 0, 0, 0.6);
             padding: 5px 15px;
@@ -49,19 +43,16 @@ html_content = """<!DOCTYPE html>
             color: #ffcc00;
             border: 1px solid #ffcc00;
         }
-
         .community-cards {
             display: flex;
             gap: 8px;
             margin-top: 15px;
         }
-
-        /* עיצוב קלפים תלת-ממדי ומודרני */
         .card {
             background: white;
             color: black;
-            width: 45px;
-            height: 65px;
+            width: 48px;
+            height: 70px;
             border-radius: 6px;
             display: flex;
             align-items: center;
@@ -69,66 +60,27 @@ html_content = """<!DOCTYPE html>
             font-size: 18px;
             font-weight: bold;
             box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-            transform: translateY(0);
-            transition: transform 0.2s;
         }
-        
         .card.red { color: #e63946; }
-
-        /* אזור השחקן והאסימונים */
-        .player-area {
-            text-align: center;
-            width: 100%;
-        }
-
-        .chips-counter {
-            font-size: 18px;
-            color: #4cc9f0;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        /* כפתורי פעולה מודרניים */
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            width: 100%;
-            max-width: 350px;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #3a0ca3, #7209b7);
-            border: none;
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(114, 9, 183, 0.3);
-            transition: transform 0.1s, opacity 0.2s;
-        }
-
-        .btn:active { transform: scale(0.95); }
+        .player-area { text-align: center; width: 100%; }
+        .chips-counter { font-size: 18px; color: #4cc9f0; font-weight: bold; margin-bottom: 15px; }
+        .actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 350px; }
+        .btn { background: linear-gradient(135deg, #3a0ca3, #7209b7); border: none; color: white; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(114, 9, 183, 0.3); }
         .btn.fold { background: linear-gradient(135deg, #d62828, #003049); }
     </style>
 </head>
 <body>
 
-    <!-- שולחן המשחק -->
     <div class="poker-table">
-        <div class="pot-display">💰 POT: $1,200</div>
-        <div class="community-cards">
-            <div class="card red">10♦</div>
-            <div class="card">J♠</div>
-            <div class="card red">Q♥</div>
+        <div class="pot-display" id="pot-val">💰 POT: $0</div>
+        <div class="community-cards" id="board">
+            <!-- קלפי השולחן יופיעו כאן באופן דינמי -->
         </div>
     </div>
 
-    <!-- נתוני השחקן וכפתורים -->
     <div class="player-area">
-        <div class="chips-counter">🪙 My Chips: $5,450</div>
+        <div class="chips-counter" id="chips-val">🪙 My Chips: $0</div>
+        <div style="font-size:14px; margin-bottom:10px;">Your Hand: <span id="hand" style="font-weight:bold; color:#ffcc00;"></span></div>
         <div class="actions-grid">
             <button class="btn" onclick="sendAction('Check')">Check</button>
             <button class="btn" onclick="sendAction('Raise')">Raise</button>
@@ -137,20 +89,37 @@ html_content = """<!DOCTYPE html>
     </div>
 
     <script>
-        // אתחול יישומון הרשת של טלגרם
         const tg = window.Telegram.WebApp;
-        tg.expand(); // פתיחת החלון למקסימום גובה במסך הטלפון
+        tg.expand();
+
+        // פונקציה לקריאת המשתנים מהקישור שפייתון שלח
+        const urlParams = new URLSearchParams(window.location.search);
+        const pot = urlParams.get('pot') || '1,000';
+        const chips = urlParams.get('chips') || '5,000';
+        const cards = urlParams.get('cards') || '2♦,5♠,A♥';
+        const hand = urlParams.get('hand') || 'No Cards';
+
+        // עדכון האלמנטים במסך
+        document.getElementById('pot-val').innerText = `💰 POT: $${pot}`;
+        document.getElementById('chips-val').innerText = `🪙 My Chips: $${chips}`;
+        document.getElementById('hand').innerText = hand;
+
+        // יצירת קלפי שולחן ויזואליים
+        const boardDiv = document.getElementById('board');
+        const cardsArray = cards.split(',');
+        cardsArray.forEach(card => {
+            if(card.trim() === "") return;
+            const isRed = card.includes('♦') || card.includes('♥');
+            const cardEl = document.createElement('div');
+            cardEl.className = `card ${isRed ? 'red' : ''}`;
+            cardEl.innerText = card;
+            boardDiv.appendChild(cardEl);
+        });
 
         function sendAction(actionName) {
-            // שליחת הנתון חזרה לבוט הפייתון וסגירת החלון
             tg.sendData(actionName);
             tg.close();
         }
     </script>
 </body>
 </html>
-"""
-
-os.makedirs('generated', exist_ok=True)
-with open('generated/poker_app.html', 'w', encoding='utf-8') as f:
-    f.write(html_content)
