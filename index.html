@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Poker Club</title>
-    <!-- טעינת הספרייה הרשמית של טלגרם למשחקים -->
+    <!-- טעינת ספריית יישומוני הרשת הרשמית והמעודכנת של טלגרם -->
     <script src="https://telegram.org"></script>
     <style>
         body {
@@ -19,93 +19,210 @@
             justify-content: center;
             min-height: 90vh;
             overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
         }
+        
+        /* שולחן הפוקר הירוק והמרהיב */
         .poker-table {
             background: radial-gradient(circle, #1b7343 0%, #0d4022 100%);
             border: 12px solid #5c3a21;
             border-radius: 150px;
-            width: 90%;
-            max-width: 400px;
-            height: 250px;
+            width: 95%;
+            max-width: 380px;
+            height: 240px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.6), inset 0 0 40px rgba(0,0,0,0.6);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
+
         .pot-display {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 5px 15px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 6px 16px;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: bold;
             color: #ffcc00;
             border: 1px solid #ffcc00;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
+
         .community-cards {
             display: flex;
-            gap: 8px;
-            margin-top: 15px;
+            gap: 10px;
+            margin-top: 20px;
         }
+
+        /* עיצוב קלפים תלת-ממדי */
         .card {
-            background: white;
-            color: black;
-            width: 48px;
-            height: 70px;
-            border-radius: 6px;
+            background: #ffffff;
+            color: #000000;
+            width: 50px;
+            height: 72px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
         }
+        
         .card.red { color: #e63946; }
-        .player-area { text-align: center; width: 100%; }
-        .chips-counter { font-size: 18px; color: #4cc9f0; font-weight: bold; margin-bottom: 15px; }
-        .actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 350px; }
-        .btn { background: linear-gradient(135deg, #3a0ca3, #7209b7); border: none; color: white; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(114, 9, 183, 0.3); }
-        .btn.fold { background: linear-gradient(135deg, #d62828, #003049); }
+
+        /* אזור נתוני השחקן */
+        .player-area {
+            text-align: center;
+            width: 100%;
+        }
+
+        .chips-counter {
+            font-size: 19px;
+            color: #4cc9f0;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hand-display {
+            font-size: 15px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        /* כפתורי פעולה מודרניים חלקים */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3a0ca3, #7209b7);
+            border: none;
+            color: white;
+            padding: 14px 10px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(114, 9, 183, 0.35);
+            transition: transform 0.1s, filter 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn:active {
+            transform: scale(0.94);
+            filter: brightness(1.2);
+        }
+
+        .btn.fold {
+            background: linear-gradient(135deg, #d62828, #1d0000);
+            box-shadow: 0 4px 15px rgba(214, 40, 40, 0.35);
+        }
     </style>
 </head>
 <body>
 
+    <!-- שולחן המשחק המרהיב -->
     <div class="poker-table">
         <div class="pot-display" id="pot-val">💰 POT: $1,500</div>
         <div class="community-cards" id="board">
-            <div class="card red">A♦</div>
-            <div class="card">K♠</div>
-            <div class="card red">Q♥</div>
+            <!-- קלפי השולחן הדינמיים ייבנו כאן -->
         </div>
     </div>
 
+    <!-- אזור השחקן והפעולות -->
     <div class="player-area">
         <div class="chips-counter" id="chips-val">🪙 My Chips: $8,400</div>
-        <div style="font-size:14px; margin-bottom:10px;">Your Hand: <span id="hand" style="font-weight:bold; color:#ffcc00;">J♣ 10♥️</span></div>
+        <div class="hand-display">Your Hand: <span id="hand" style="font-weight:bold; color:#ffcc00;"></span></div>
+        
         <div class="actions-grid">
-            <!-- הוספת onClick תקין לחלוטין שמפעיל את הפונקציה -->
             <button class="btn" onclick="sendAction('Check')">Check</button>
-            <button class="btn" onclick="sendAction('Raise')">Raise</button>
+            <button class="btn" onclick="openRaisePopup()">Raise</button>
             <button class="btn fold" onclick="sendAction('Fold')">Fold</button>
         </div>
     </div>
 
     <script>
-        // אתחול חובה של ממשק טלגרם
+        // אתחול והרחבת חלון היישומון בטלגרם למקסימום גובה
         const tg = window.Telegram.WebApp;
-        tg.ready(); // מודיע לטלגרם שהאתר מוכן לפעולה
-        tg.expand(); // פותח את המסך למקסימום גובה
+        tg.ready();
+        tg.expand();
 
+        // קריאת הפרמטרים החסינים מהכתובת שפייתון שולח
+        const urlParams = new URLSearchParams(window.location.search);
+        const pot = urlParams.get('pot') || '1,500';
+        const chips = urlParams.get('chips') || '8,400';
+        const cards = urlParams.get('cards') || 'AD,KS,QH';
+        const hand = urlParams.get('hand') || 'JC,10H';
+
+        // עדכון טקסטים במסך
+        document.getElementById('pot-val').innerText = `💰 POT: $${pot}`;
+        document.getElementById('chips-val').innerText = `🪙 My Chips: $${chips}`;
+
+        // פונקציה להמרת אותיות אנגליות לסמלי קלפים צבעוניים
+        function parseCard(cardStr) {
+            let txt = cardStr.trim();
+            txt = txt.replace('H', '♥️').replace('D', '♦️').replace('C', '♣️').replace('S', '♠️');
+            const isRed = cardStr.includes('H') || cardStr.includes('D');
+            return { text: txt, red: isRed };
+        }
+
+        // רינדור קלפי השולחן (Community Cards)
+        const boardDiv = document.getElementById('board');
+        cards.split(',').forEach(c => {
+            if(!c) return;
+            const cardInfo = parseCard(c);
+            const cardEl = document.createElement('div');
+            cardEl.className = `card ${cardInfo.red ? 'red' : ''}`;
+            cardEl.innerText = cardInfo.text;
+            boardDiv.appendChild(cardEl);
+        });
+
+        // רינדור קלפי היד של השחקן (Hand)
+        let handText = "";
+        hand.split(',').forEach(c => {
+            if(!c) return;
+            handText += parseCard(c).text + " ";
+        });
+        document.getElementById('hand').innerText = handText;
+
+        // חלון קופץ רשמי ומרהיב של טלגרם לבחירת הימור (Raise)
+        function openRaisePopup() {
+            tg.showPopup({
+                title: 'העלאת הימור (Raise)',
+                message: 'בחר סכום להוספה לקופה:',
+                buttons: [
+                    {id: 'r500', type: 'default', text: '+$500'},
+                    {id: 'r1000', type: 'default', text: '+$1,000'},
+                    {id: 'allin', type: 'destructive', text: '🔥 ALL IN!'},
+                    {type: 'cancel', text: 'ביטול המשך הימור'}
+                ]
+            }, function(buttonId) {
+                if (buttonId === 'r500') sendAction('Raise $500');
+                if (buttonId === 'r1000') sendAction('Raise $1000');
+                if (buttonId === 'allin') sendAction('ALL IN 💥');
+            });
+        }
+
+        // פונקציית שליחת המידע חזרה לפייתון וסגירת החלון
         function sendAction(actionName) {
             try {
-                // פקודת הקסם של טלגרם ששולחת את הטקסט חזרה לבוט הפייתון
-                tg.sendData(message=actionName);
-                // סגירה מיידית של חלון המשחק לאחר הלחיצה
+                tg.sendData(actionName);
                 tg.close();
             } catch (error) {
-                alert("שגיאה בשליחת הנתונים לטלגרם: " + error.message);
+                // הגנה למקרה שהאתר נפתח דרך כפתור תפריט חסום - סגירה רכה
+                tg.close();
             }
         }
     </script>
