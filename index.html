@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Poker Club</title>
+    <!-- טעינת הספרייה הרשמית של טלגרם למשחקים -->
     <script src="https://telegram.org"></script>
     <style>
         body {
@@ -72,82 +73,41 @@
 <body>
 
     <div class="poker-table">
-        <div class="pot-display" id="pot-val">💰 POT: $0</div>
-        <div class="community-cards" id="board"></div>
+        <div class="pot-display" id="pot-val">💰 POT: $1,500</div>
+        <div class="community-cards" id="board">
+            <div class="card red">A♦</div>
+            <div class="card">K♠</div>
+            <div class="card red">Q♥</div>
+        </div>
     </div>
 
     <div class="player-area">
-        <div class="chips-counter" id="chips-val">🪙 My Chips: $0</div>
-        <div style="font-size:14px; margin-bottom:10px;">Your Hand: <span id="hand" style="font-weight:bold; color:#ffcc00;"></span></div>
+        <div class="chips-counter" id="chips-val">🪙 My Chips: $8,400</div>
+        <div style="font-size:14px; margin-bottom:10px;">Your Hand: <span id="hand" style="font-weight:bold; color:#ffcc00;">J♣ 10♥️</span></div>
         <div class="actions-grid">
+            <!-- הוספת onClick תקין לחלוטין שמפעיל את הפונקציה -->
             <button class="btn" onclick="sendAction('Check')">Check</button>
-            <button class="btn" onclick="openRaisePopup()">Raise</button>
+            <button class="btn" onclick="sendAction('Raise')">Raise</button>
             <button class="btn fold" onclick="sendAction('Fold')">Fold</button>
         </div>
     </div>
 
     <script>
+        // אתחול חובה של ממשק טלגרם
         const tg = window.Telegram.WebApp;
-        tg.expand();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const pot = urlParams.get('pot') || '1,500';
-        const chips = urlParams.get('chips') || '10,000';
-        const cards = urlParams.get('cards') || 'AD,KS,QH';
-        const hand = urlParams.get('hand') || 'JC,10H';
-
-        document.getElementById('pot-val').innerText = `💰 POT: $${pot}`;
-        document.getElementById('chips-val').innerText = `🪙 My Chips: $${chips}`;
-
-        // פונקציה שממירה אותיות אנגליות לאמוג'ים של קלפים בצורה בטוחה
-        function parseCard(cardStr) {
-            let txt = cardStr.trim();
-            txt = txt.replace('H', '♥️').replace('D', '♦️').replace('C', '♣️').replace('S', '♠️');
-            const isRed = cardStr.includes('H') || cardStr.includes('D');
-            return { text: txt, red: isRed };
-        }
-
-        // הצגת קלפי השולחן
-        const boardDiv = document.getElementById('board');
-        cards.split(',').forEach(c => {
-            if(!c) return;
-            const cardInfo = parseCard(c);
-            const cardEl = document.createElement('div');
-            cardEl.className = `card ${cardInfo.red ? 'red' : ''}`;
-            cardEl.innerText = cardInfo.text;
-            boardDiv.appendChild(cardEl);
-        });
-
-        // הצגת קלפי השחקן
-        let handText = "";
-        hand.split(',').forEach(c => {
-            if(!c) return;
-            handText += parseCard(c).text + " ";
-        });
-        document.getElementById('hand').innerText = handText;
-
-        function openRaisePopup() {
-            tg.showPopup({
-                title: 'העלאת הימור (Raise)',
-                message: 'בחר סכום להעלאה:',
-                buttons: [
-                    {id: 'r500', type: 'default', text: '+$500'},
-                    {id: 'r1000', type: 'default', text: '+$1,000'},
-                    {id: 'allin', type: 'destructive', text: '🔥 ALL IN!'},
-                    {type: 'cancel', text: 'ביטול'}
-                ]
-            }, function(buttonId) {
-                if (buttonId === 'r500') sendAction('Raise $500');
-                if (buttonId === 'r1000') sendAction('Raise $1000');
-                if (buttonId === 'allin') sendAction('ALL IN 💥');
-            });
-        }
+        tg.ready(); // מודיע לטלגרם שהאתר מוכן לפעולה
+        tg.expand(); // פותח את המסך למקסימום גובה
 
         function sendAction(actionName) {
-            tg.sendData(actionName);
-            tg.close();
+            try {
+                // פקודת הקסם של טלגרם ששולחת את הטקסט חזרה לבוט הפייתון
+                tg.sendData(message=actionName);
+                // סגירה מיידית של חלון המשחק לאחר הלחיצה
+                tg.close();
+            } catch (error) {
+                alert("שגיאה בשליחת הנתונים לטלגרם: " + error.message);
+            }
         }
     </script>
 </body>
 </html>
-
