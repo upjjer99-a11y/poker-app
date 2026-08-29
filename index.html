@@ -83,7 +83,7 @@
         <div style="font-size:14px; margin-bottom:10px;">Your Hand: <span id="hand" style="font-weight:bold; color:#ffcc00;"></span></div>
         <div class="actions-grid">
             <button class="btn" onclick="sendAction('Check')">Check</button>
-            <button class="btn" onclick="sendAction('Raise')">Raise</button>
+            <button class="btn" onclick="openRaisePopup()">Raise</button>
             <button class="btn fold" onclick="sendAction('Fold')">Fold</button>
         </div>
     </div>
@@ -92,12 +92,14 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // פונקציה לקריאת המשתנים מהקישור שפייתון שלח
+        // קריאת המשתנים מהקישור שפייתון שלח
         const urlParams = new URLSearchParams(window.location.search);
-        const pot = urlParams.get('pot') || '1,000';
-        const chips = urlParams.get('chips') || '5,000';
-        const cards = urlParams.get('cards') || '2♦,5♠,A♥';
-        const hand = urlParams.get('hand') || 'No Cards';
+
+        // אם הפרמטר לא קיים, נשים ערך ברירת מחדל מלהיב כדי שלא יישמר ריק
+        const pot = urlParams.get('pot') || '1,500';
+        const chips = urlParams.get('chips') || '10,000';
+        const cards = urlParams.get('cards') || 'A♦,K♠,Q♥';
+        const hand = urlParams.get('hand') || 'J♣ 10♥️';
 
         // עדכון האלמנטים במסך
         document.getElementById('pot-val').innerText = `💰 POT: $${pot}`;
@@ -109,12 +111,30 @@
         const cardsArray = cards.split(',');
         cardsArray.forEach(card => {
             if(card.trim() === "") return;
-            const isRed = card.includes('♦') || card.includes('♥');
+            const isRed = card.includes('♦') || card.includes('♥') || card.includes('♥️');
             const cardEl = document.createElement('div');
             cardEl.className = `card ${isRed ? 'red' : ''}`;
             cardEl.innerText = card;
             boardDiv.appendChild(cardEl);
         });
+
+        // פונקציה לפתיחת חלון קופץ מודרני מובנה של טלגרם להזנת סכום הימור
+        function openRaisePopup() {
+            tg.showPopup({
+                title: 'העלאת הימור (Raise)',
+                message: 'בחר סכום להעלאה:',
+                buttons: [
+                    {id: 'r500', type: 'default', text: '+$500'},
+                    {id: 'r1000', type: 'default', text: '+$1,000'},
+                    {id: 'allin', type: 'destructive', text: '🔥 ALL IN!'},
+                    {type: 'cancel', text: 'ביטול'}
+                ]
+            }, function(buttonId) {
+                if (buttonId === 'r500') sendAction('Raise $500');
+                if (buttonId === 'r1000') sendAction('Raise $1000');
+                if (buttonId === 'allin') sendAction('ALL IN 💥');
+            });
+        }
 
         function sendAction(actionName) {
             tg.sendData(actionName);
